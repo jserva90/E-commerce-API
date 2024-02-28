@@ -1,34 +1,34 @@
 package solutional.homework.ecommerce.Models;
 
 import lombok.Data;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
-import java.util.List;
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
 @Data
 @Table(name = "orders")
 public class Order {
+
     @Id
-    @GeneratedValue
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
     private UUID id;
+
     private String status;
 
-    @Embedded
-    private Amount amount;
+    @Column(precision = 10, scale = 2)
+    private BigDecimal discount;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "order_id")
-    private List<Product> products;
+    @Column(precision = 10, scale = 2)
+    private BigDecimal paid;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal returns;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal total;
 }
 
-@Embeddable
-@Data
-@Table(name = "amounts")
-class Amount {
-    private String discount;
-    private String paid;
-    private String returns;
-    private String total;
-}
