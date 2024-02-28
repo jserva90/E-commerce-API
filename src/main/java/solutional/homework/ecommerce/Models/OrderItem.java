@@ -28,6 +28,4 @@ public class OrderItem {
     @ManyToOne
     @JoinColumn(name = "replaced_with")
     private Product replacedWith;
-
-
 }

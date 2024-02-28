@@ -3,12 +3,10 @@ package solutional.homework.ecommerce.Services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import solutional.homework.ecommerce.Models.*;
 import solutional.homework.ecommerce.Models.DTO.OrderResponseDTO;
-import solutional.homework.ecommerce.Models.Order;
-import solutional.homework.ecommerce.Models.OrderItem;
-import solutional.homework.ecommerce.Models.OrderItemRepository;
-import solutional.homework.ecommerce.Models.OrderRepository;
 import solutional.homework.ecommerce.utils.BigDecimalToStringConverter;
 
 import java.math.BigDecimal;
@@ -22,11 +20,13 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private OrderItemRepository orderItemRepository;
+    private ProductRepository productRepository;
 
     @Autowired
-    public OrderService(OrderRepository orderRepository,OrderItemRepository orderItemRepository) {
+    public OrderService(OrderRepository orderRepository,OrderItemRepository orderItemRepository,ProductRepository productRepository) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
+        this.productRepository = productRepository;
     }
 
     public OrderResponseDTO createOrder() {
@@ -76,6 +76,16 @@ public class OrderService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
     }
 
+    public List<OrderResponseDTO.ProductDTO> getProductsByOrderId(UUID orderId) {
+        return orderRepository.findById(orderId)
+                .map(order -> {
+                    List<OrderResponseDTO.ProductDTO> productDTOList = convertOrderItemsToProductDTOs(order.getId());
+
+                    return productDTOList;
+                })
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
+    }
+
     public Order updateOrderStatus(UUID orderId,String newStatus){
         return orderRepository.findById(orderId).map(order -> {
 
@@ -90,7 +100,17 @@ public class OrderService {
         }).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Order not found"));
     }
 
+    @Transactional
+    public List<Product> addProductsToOrder(UUID orderId,List<Long> productIds){
+        Order order = orderRepository.findById(orderId).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,"Not found"));
 
+        List<Product> productsToAdd = productRepository.findAllById(productIds);
+        if (productsToAdd.size() != productIds.size()){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Invalid parameters");
+        }
+
+        return productsToAdd;
+    }
 
     public List<OrderResponseDTO.ProductDTO> convertOrderItemsToProductDTOs(UUID orderId) {
         List<OrderItem> orderItems = orderItemRepository.findByOrderId(orderId);

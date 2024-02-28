@@ -7,10 +7,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import solutional.homework.ecommerce.Models.DTO.OrderResponseDTO;
 import solutional.homework.ecommerce.Models.DTO.OrderStatusUpdateDTO;
+import solutional.homework.ecommerce.Models.Product;
 import solutional.homework.ecommerce.Services.OrderService;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -42,6 +44,25 @@ public class OrderController {
             response.getWriter().write("\"Not found\"");
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
+    }
+
+    @GetMapping("/{orderId}/products")
+    public void getProductsByOrderId(@PathVariable UUID orderId, HttpServletResponse response) throws IOException {
+        try {
+            List<OrderResponseDTO.ProductDTO> productsListDTO = orderService.getProductsByOrderId(orderId);
+            response.setContentType("application/json");
+            response.getWriter().write(new ObjectMapper().writeValueAsString(productsListDTO));
+            response.setStatus(HttpServletResponse.SC_OK);
+        } catch (ResponseStatusException ex) {
+            response.setContentType("application/json");
+            response.getWriter().write("\"Not found\"");
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        }
+    }
+
+    @PostMapping("/{orderId}/products")
+    public List<Product> getProductsByOrderId(@PathVariable UUID orderId, @RequestBody List<Long> productIds) {
+        return orderService.addProductsToOrder(orderId,productIds);
     }
 
     @PatchMapping("/{orderId}")

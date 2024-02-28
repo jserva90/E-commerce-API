@@ -11,7 +11,7 @@ import javax.persistence.Table;
 @Table(name = "products")
 public class Product {
     @Id
-    private Integer id;
+    private Long id;
     private String name;
     private String price;
 }
