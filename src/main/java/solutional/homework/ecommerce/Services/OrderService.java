@@ -112,15 +112,23 @@ public class OrderService {
         }
 
         productsToAdd.forEach(product -> {
-            System.out.println(product);
-            order.addProduct(product,1);
+            Optional<OrderItem> existingItem = order.getItems().stream()
+                    .filter(item -> item.getProduct().equals(product))
+                    .findFirst();
+
+            if (existingItem.isPresent()) {
+                OrderItem itemToUpdate = existingItem.get();
+                itemToUpdate.setQuantity(itemToUpdate.getQuantity() + 1);
+            } else {
+                order.addProduct(product, 1);
+            }
         });
+
         orderRepository.save(order);
     }
 
     public List<OrderResponseDTO.ProductDTO> convertOrderItemsToProductDTOs(UUID orderId) {
         List<OrderItem> orderItems = orderItemRepository.findByOrderId(orderId);
-        orderItems.forEach(orderItem -> System.out.println(orderItem.getProduct().getName()));
         return orderItems.stream().map(item -> new OrderResponseDTO.ProductDTO(
                 item.getId(),
                 item.getProduct().getId(),
