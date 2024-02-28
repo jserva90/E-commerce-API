@@ -40,7 +40,12 @@ public class OrderResponseDTO {
         private int quantity;
         private UUID replacedWith;
 
-        public ProductDTO(Long id, String name, String price, int quantity) {
+        public ProductDTO(UUID id,Long product_id, String name, String price, int quantity) {
+            this.id = id;
+            this.product_id = product_id;
+            this.name = name;
+            this.price = price;
+            this.quantity = quantity;
         }
     }
 }

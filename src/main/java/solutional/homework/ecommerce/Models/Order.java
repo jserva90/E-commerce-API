@@ -1,15 +1,20 @@
 package solutional.homework.ecommerce.Models;
 
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
-@Data
 @Table(name = "orders")
+@Getter
+@Setter
 public class Order {
 
     @Id
@@ -30,5 +35,14 @@ public class Order {
 
     @Column(precision = 10, scale = 2)
     private BigDecimal total;
+
+    @OneToMany(mappedBy = "order",cascade = CascadeType.ALL,orphanRemoval = true)
+    @JsonManagedReference
+    private Set<OrderItem> items = new HashSet<>();
+
+    public void addProduct(Product product,int quantity){
+        OrderItem orderItem = new OrderItem(this,product,quantity);
+        items.add(orderItem);
+    }
 }
 

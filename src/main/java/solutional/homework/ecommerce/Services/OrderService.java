@@ -5,8 +5,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import solutional.homework.ecommerce.Models.*;
 import solutional.homework.ecommerce.Models.DTO.OrderResponseDTO;
+import solutional.homework.ecommerce.Models.*;
 import solutional.homework.ecommerce.utils.BigDecimalToStringConverter;
 
 import java.math.BigDecimal;
@@ -101,7 +101,7 @@ public class OrderService {
     }
 
     @Transactional
-    public List<Product> addProductsToOrder(UUID orderId,List<Long> productIds){
+    public void addProductsToOrder(UUID orderId,List<Long> productIds){
         Order order = orderRepository.findById(orderId).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,"Not found"));
 
         List<Product> productsToAdd = productRepository.findAllById(productIds);
@@ -109,12 +109,18 @@ public class OrderService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Invalid parameters");
         }
 
-        return productsToAdd;
+        productsToAdd.forEach(product -> {
+            System.out.println(product);
+            order.addProduct(product,1);
+        });
+        orderRepository.save(order);
     }
 
     public List<OrderResponseDTO.ProductDTO> convertOrderItemsToProductDTOs(UUID orderId) {
         List<OrderItem> orderItems = orderItemRepository.findByOrderId(orderId);
+        orderItems.forEach(orderItem -> System.out.println(orderItem.getProduct().getName()));
         return orderItems.stream().map(item -> new OrderResponseDTO.ProductDTO(
+                item.getId(),
                 item.getProduct().getId(),
                 item.getProduct().getName(),
                 item.getProduct().getPrice(),

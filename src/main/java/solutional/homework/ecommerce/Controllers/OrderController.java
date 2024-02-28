@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import solutional.homework.ecommerce.Models.DTO.OrderResponseDTO;
 import solutional.homework.ecommerce.Models.DTO.OrderStatusUpdateDTO;
-import solutional.homework.ecommerce.Models.Product;
 import solutional.homework.ecommerce.Services.OrderService;
 
 import javax.servlet.http.HttpServletResponse;
@@ -61,8 +60,17 @@ public class OrderController {
     }
 
     @PostMapping("/{orderId}/products")
-    public List<Product> getProductsByOrderId(@PathVariable UUID orderId, @RequestBody List<Long> productIds) {
-        return orderService.addProductsToOrder(orderId,productIds);
+    public void getProductsByOrderId(@PathVariable UUID orderId, @RequestBody List<Long> productIds, HttpServletResponse response) throws IOException {
+        try {
+            orderService.addProductsToOrder(orderId,productIds);
+            response.setContentType("application/json");
+            response.getWriter().write("\"OK\"");
+            response.setStatus(HttpServletResponse.SC_OK);
+        } catch (ResponseStatusException ex) {
+            response.setContentType("application/json");
+            response.getWriter().write("\"Not found\"");
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        }
     }
 
     @PatchMapping("/{orderId}")
