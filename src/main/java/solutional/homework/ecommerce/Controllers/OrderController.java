@@ -68,7 +68,8 @@ public class OrderController {
             response.setStatus(HttpServletResponse.SC_OK);
         } catch (ResponseStatusException ex) {
             response.setContentType("application/json");
-            response.getWriter().write("\"Not found\"");
+            String jsonMessage = String.format("\"%s\"",ex.getReason());
+            response.getWriter().write(jsonMessage);
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
     }

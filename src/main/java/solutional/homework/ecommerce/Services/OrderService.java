@@ -10,9 +10,7 @@ import solutional.homework.ecommerce.Models.*;
 import solutional.homework.ecommerce.utils.BigDecimalToStringConverter;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,8 +45,7 @@ public class OrderService {
         amount.setReturns(BigDecimalToStringConverter.convert(order.getReturns()));
         amount.setTotal(BigDecimalToStringConverter.convert(order.getTotal()));
         orderResponseDTO.setAmount(amount);
-        // Assuming you have a method to get products for the order
-        orderResponseDTO.setProducts(new ArrayList<>()); // For now, set as empty list
+        orderResponseDTO.setProducts(new ArrayList<>());
 
         return orderResponseDTO;
     }
@@ -103,6 +100,11 @@ public class OrderService {
     @Transactional
     public void addProductsToOrder(UUID orderId,List<Long> productIds){
         Order order = orderRepository.findById(orderId).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,"Not found"));
+
+        Set<Long> uniqueProductIds = new HashSet<>(productIds);
+        if (uniqueProductIds.size() != productIds.size()){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Invalid parameters");
+        }
 
         List<Product> productsToAdd = productRepository.findAllById(productIds);
         if (productsToAdd.size() != productIds.size()){
