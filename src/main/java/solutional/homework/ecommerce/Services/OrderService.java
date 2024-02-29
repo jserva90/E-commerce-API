@@ -85,21 +85,23 @@ public class OrderService {
 
     public Order updateOrderStatus(UUID orderId,String newStatus){
         return orderRepository.findById(orderId).map(order -> {
-
             if ("NEW".equals(order.getStatus()) && "PAID".equals(newStatus)){
                 order.setStatus(newStatus);
+                order.setPaid(order.getTotal());
                 return orderRepository.save(order);
             } else {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Invalid order status");
             }
-
-
         }).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Order not found"));
     }
 
     @Transactional
     public void addProductsToOrder(UUID orderId,List<Long> productIds){
         Order order = orderRepository.findById(orderId).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,"Not found"));
+
+        if ("PAID".equals(order.getStatus())){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Invalid parameters");
+        }
 
         Set<Long> uniqueProductIds = new HashSet<>(productIds);
         if (uniqueProductIds.size() != productIds.size()){
@@ -131,6 +133,10 @@ public class OrderService {
     public void changeOrderItemQuantity(UUID orderId,UUID orderItemId, int newQuantity){
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Not found"));
+
+        if ("PAID".equals(order.getStatus())){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Invalid parameters");
+        }
 
         OrderItem orderItem = order.getItems().stream()
                 .filter(item -> item.getId().equals(orderItemId))
