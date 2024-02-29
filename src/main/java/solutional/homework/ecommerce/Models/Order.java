@@ -44,5 +44,12 @@ public class Order {
         OrderItem orderItem = new OrderItem(this,product,quantity);
         items.add(orderItem);
     }
+
+    public void calculateTotal(){
+        BigDecimal newTotal = items.stream().
+                map(item -> new BigDecimal(item.getProduct().getPrice()).multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO,BigDecimal::add);
+        this.total = newTotal;
+    }
 }
 

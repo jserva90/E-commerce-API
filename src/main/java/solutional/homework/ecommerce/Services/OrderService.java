@@ -124,6 +124,7 @@ public class OrderService {
             }
         });
 
+        order.calculateTotal();
         orderRepository.save(order);
     }
 
