@@ -128,6 +128,24 @@ public class OrderService {
         orderRepository.save(order);
     }
 
+    public void changeOrderItemQuantity(UUID orderId,UUID orderItemId, int newQuantity){
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Not found"));
+
+        OrderItem orderItem = order.getItems().stream()
+                .filter(item -> item.getId().equals(orderItemId))
+                .findFirst()
+                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,"Not found"));
+
+        if (newQuantity < 0){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Invalid parameters");
+        }
+
+        orderItem.setQuantity(newQuantity);
+        order.calculateTotal();
+        orderRepository.save(order);
+    }
+
     public List<OrderResponseDTO.ProductDTO> convertOrderItemsToProductDTOs(UUID orderId) {
         List<OrderItem> orderItems = orderItemRepository.findByOrderId(orderId);
         return orderItems.stream().map(item -> new OrderResponseDTO.ProductDTO(

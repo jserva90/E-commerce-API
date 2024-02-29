@@ -2,9 +2,12 @@ package solutional.homework.ecommerce.Controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import solutional.homework.ecommerce.Models.DTO.OrderItemQuantityDTO;
 import solutional.homework.ecommerce.Models.DTO.OrderResponseDTO;
 import solutional.homework.ecommerce.Models.DTO.OrderStatusUpdateDTO;
 import solutional.homework.ecommerce.Services.OrderService;
@@ -86,5 +89,27 @@ public class OrderController {
             response.getWriter().write("\"Invalid order status\"");
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         }
+    }
+
+    @PatchMapping("/{orderId}/products/{orderItemId}")
+    public void changeOrderItemQuantity(@PathVariable UUID orderId, @PathVariable UUID orderItemId, @RequestBody OrderItemQuantityDTO quantityDTO,HttpServletResponse response) throws IOException{
+        try {
+            orderService.changeOrderItemQuantity(orderId,orderItemId, quantityDTO.getQuantity());
+            response.setContentType("application/json");
+            response.getWriter().write("\"OK\"");
+            response.setStatus(HttpServletResponse.SC_OK);
+        } catch (ResponseStatusException ex) {
+            response.setContentType("application/json");
+            String jsonMessage = String.format("\"%s\"",ex.getReason());
+            response.getWriter().write(jsonMessage);
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        }
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public void handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpServletResponse response) throws IOException {
+        response.setContentType("application/json");
+        response.getWriter().write("\"Invalid parameters\"");
+        response.setStatus(HttpStatus.BAD_REQUEST.value());
     }
 }
