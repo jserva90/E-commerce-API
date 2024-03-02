@@ -38,7 +38,7 @@ public class OrderResponseDTO {
         private String price;
         private Long product_id;
         private int quantity;
-        private OrderItemDTO replacedWith;
+        private OrderItemDTO replaced_with;
 
         public OrderItemDTO(UUID id, Long product_id, String name, String price, int quantity,OrderItemDTO replacedWith) {
             this.id = id;
@@ -46,7 +46,7 @@ public class OrderResponseDTO {
             this.name = name;
             this.price = price;
             this.quantity = quantity;
-            this.replacedWith = replacedWith;
+            this.replaced_with = replacedWith;
         }
     }
 }

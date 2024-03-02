@@ -68,7 +68,7 @@ public class OrderService {
 
                     List<OrderResponseDTO.OrderItemDTO> orderItemDTOList = convertOrderItemsToOrderItemDTOs(order.getId());
                     orderResponseDTO.setProducts(orderItemDTOList);
-
+                    orderResponseDTO.getProducts().sort(Comparator.comparingLong(OrderResponseDTO.OrderItemDTO::getProduct_id));
                     return orderResponseDTO;
                 })
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
@@ -78,7 +78,7 @@ public class OrderService {
         return orderRepository.findById(orderId)
                 .map(order -> {
                     List<OrderResponseDTO.OrderItemDTO> orderItemDTOList = convertOrderItemsToOrderItemDTOs(order.getId());
-
+                    orderItemDTOList.sort(Comparator.comparingLong(OrderResponseDTO.OrderItemDTO::getProduct_id));
                     return orderItemDTOList;
                 })
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
@@ -217,7 +217,7 @@ public class OrderService {
         );
 
         if (orderItem.getReplacedWith() != null) {
-            dto.setReplacedWith(mapToOrderItemDTO(orderItem.getReplacedWith()));
+            dto.setReplaced_with(mapToOrderItemDTO(orderItem.getReplacedWith()));
         }
 
         return dto;
