@@ -89,45 +89,10 @@ public class OrderController {
         }
     }
 
-//    @PatchMapping("/{orderId}/products/{orderItemId}")
-//    public void changeOrderItemQuantity(@PathVariable UUID orderId, @PathVariable UUID orderItemId, @RequestBody OrderItemQuantityDTO quantityDTO,HttpServletResponse response) throws IOException{
-//        try {
-//            orderService.changeOrderItemQuantity(orderId,orderItemId, quantityDTO.getQuantity());
-//            response.setContentType("application/json");
-//            response.getWriter().write("\"OK\"");
-//            response.setStatus(HttpServletResponse.SC_OK);
-//        } catch (ResponseStatusException ex) {
-//            response.setContentType("application/json");
-//            String jsonMessage = String.format("\"%s\"",ex.getReason());
-//            response.getWriter().write(jsonMessage);
-//            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-//        }
-//    }
-
     @PatchMapping("/{orderId}/products/{orderItemId}")
-    public void changeOrderItemQuantity(@PathVariable UUID orderId, @PathVariable UUID orderItemId, @RequestBody OrderItemUpdateDTO updateDTO, HttpServletResponse response) throws IOException{
+    public void handleOrderItemUpdate(@PathVariable UUID orderId, @PathVariable UUID orderItemId, @RequestBody OrderItemUpdateDTO updateDTO, HttpServletResponse response) throws IOException{
         try {
             orderService.handleOrderItemUpdate(orderId,orderItemId,updateDTO);
-            response.setContentType("application/json");
-            response.getWriter().write("\"OK\"");
-            response.setStatus(HttpServletResponse.SC_OK);
-        } catch (ResponseStatusException ex) {
-            response.setContentType("application/json");
-            String jsonMessage = String.format("\"%s\"",ex.getReason());
-            response.getWriter().write(jsonMessage);
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        }
-    }
-
-    //temp controller to test replace item
-    @PatchMapping("/{orderId}/products/{orderItemId}/r")
-    public void replace(@PathVariable UUID orderId, @PathVariable UUID orderItemId, @RequestBody OrderItemReplacementDTO replacementDTO, HttpServletResponse response) throws IOException{
-        try {
-            orderService.replaceOrderItemInOrder(
-                    orderId,
-                    orderItemId,
-                    replacementDTO.getReplaced_with().getProduct_id(),
-                    replacementDTO.getReplaced_with().getQuantity());
             response.setContentType("application/json");
             response.getWriter().write("\"OK\"");
             response.setStatus(HttpServletResponse.SC_OK);
