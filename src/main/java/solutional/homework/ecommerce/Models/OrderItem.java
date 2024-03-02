@@ -31,9 +31,12 @@ public class OrderItem {
 
     private int quantity;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "replaced_with_id")
     private OrderItem replacedWith;
+
+    @Column(name = "is_replaced",nullable = false)
+    private boolean isReplaced = false;
 
     public OrderItem(Order order, Product product, int quantity){
         this.order = order;

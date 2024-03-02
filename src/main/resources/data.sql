@@ -22,6 +22,7 @@ CREATE TABLE order_items (
     product_id INT NOT NULL,
     quantity INT NOT NULL,
     replaced_with_id UUID NULL,
+    is_replaced BOOLEAN NOT NULL DEFAULT false,
     FOREIGN KEY (order_id) REFERENCES orders(id),
     FOREIGN KEY (product_id) REFERENCES products(id),
     FOREIGN KEY (replaced_with_id) REFERENCES order_items(id)

@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import solutional.homework.ecommerce.Models.DTO.OrderItemUpdateDTO;
 import solutional.homework.ecommerce.Models.DTO.OrderResponseDTO;
 import solutional.homework.ecommerce.Models.*;
 import solutional.homework.ecommerce.utils.BigDecimalToStringConverter;
@@ -134,10 +135,6 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Not found"));
 
-        if ("PAID".equals(order.getStatus())){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Invalid parameters");
-        }
-
         OrderItem orderItem = order.getItems().stream()
                 .filter(item -> item.getId().equals(orderItemId))
                 .findFirst()
@@ -156,16 +153,18 @@ public class OrderService {
     public void replaceOrderItemInOrder(UUID orderId, UUID orderItemId, Long replacementProductId, int replacementQuantity) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
 
-        if (!"PAID".equals(order.getStatus())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid parameters");
-        }
-
         OrderItem orderItem = order.getItems().stream()
                 .filter(item -> item.getId().equals(orderItemId))
                 .findFirst()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
 
         Product replacementProduct = productRepository.findById(replacementProductId).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid parameters"));
+
+        if (orderItem.getReplacedWith() != null){
+            OrderItem existingReplacement = orderItem.getReplacedWith();
+            existingReplacement.setReplaced(true);
+            orderItemRepository.save(existingReplacement);
+        }
 
         OrderItem replacementItem = new OrderItem();
         replacementItem.setOrder(order);
@@ -179,6 +178,20 @@ public class OrderService {
         orderRepository.save(order);
     }
 
+    public void handleOrderItemUpdate(UUID orderId, UUID productItemId, OrderItemUpdateDTO updateDTO) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
+
+        if ("NEW".equals(order.getStatus()) && updateDTO.getQuantity() != null) {
+            changeOrderItemQuantity(orderId, productItemId, updateDTO.getQuantity());
+        } else if ("PAID".equals(order.getStatus()) && updateDTO.getReplacedWith() != null) {
+            OrderItemUpdateDTO.Replacement replacement = updateDTO.getReplacedWith();
+            replaceOrderItemInOrder(orderId, productItemId, replacement.getProductId(), replacement.getQuantity());
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid parameters");
+        }
+    }
+
     public List<OrderResponseDTO.OrderItemDTO> convertOrderItemsToOrderItemDTOs(UUID orderId) {
         List<OrderItem> orderItems = orderItemRepository.findByOrderId(orderId);
 
@@ -189,6 +202,7 @@ public class OrderService {
 
         return orderItems.stream()
                 .filter(item -> !replacementItemIds.contains(item.getId()))
+                .filter(item -> !item.isReplaced())
                 .map(this::mapToOrderItemDTO)
                 .collect(Collectors.toList());
     }
