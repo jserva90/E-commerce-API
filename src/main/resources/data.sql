@@ -21,8 +21,8 @@ CREATE TABLE order_items (
     order_id UUID NOT NULL,
     product_id INT NOT NULL,
     quantity INT NOT NULL,
-    replaced_with INT NULL,
+    replaced_with_id UUID NULL,
     FOREIGN KEY (order_id) REFERENCES orders(id),
     FOREIGN KEY (product_id) REFERENCES products(id),
-    FOREIGN KEY (replaced_with) REFERENCES products(id)
+    FOREIGN KEY (replaced_with_id) REFERENCES order_items(id)
 );

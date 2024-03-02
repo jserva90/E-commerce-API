@@ -65,20 +65,20 @@ public class OrderService {
                     );
                     orderResponseDTO.setAmount(amount);
 
-                    List<OrderResponseDTO.ProductDTO> productDTOList = convertOrderItemsToProductDTOs(order.getId());
-                    orderResponseDTO.setProducts(productDTOList);
+                    List<OrderResponseDTO.OrderItemDTO> orderItemDTOList = convertOrderItemsToOrderItemDTOs(order.getId());
+                    orderResponseDTO.setProducts(orderItemDTOList);
 
                     return orderResponseDTO;
                 })
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
     }
 
-    public List<OrderResponseDTO.ProductDTO> getProductsByOrderId(UUID orderId) {
+    public List<OrderResponseDTO.OrderItemDTO> getProductsByOrderId(UUID orderId) {
         return orderRepository.findById(orderId)
                 .map(order -> {
-                    List<OrderResponseDTO.ProductDTO> productDTOList = convertOrderItemsToProductDTOs(order.getId());
+                    List<OrderResponseDTO.OrderItemDTO> orderItemDTOList = convertOrderItemsToOrderItemDTOs(order.getId());
 
-                    return productDTOList;
+                    return orderItemDTOList;
                 })
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
     }
@@ -152,14 +152,61 @@ public class OrderService {
         orderRepository.save(order);
     }
 
-    public List<OrderResponseDTO.ProductDTO> convertOrderItemsToProductDTOs(UUID orderId) {
+    @Transactional
+    public void replaceOrderItemInOrder(UUID orderId, UUID orderItemId, Long replacementProductId, int replacementQuantity) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
+
+        if (!"PAID".equals(order.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid parameters");
+        }
+
+        OrderItem orderItem = order.getItems().stream()
+                .filter(item -> item.getId().equals(orderItemId))
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
+
+        Product replacementProduct = productRepository.findById(replacementProductId).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid parameters"));
+
+        OrderItem replacementItem = new OrderItem();
+        replacementItem.setOrder(order);
+        replacementItem.setProduct(replacementProduct);
+        replacementItem.setQuantity(replacementQuantity);
+
+        replacementItem = orderItemRepository.save(replacementItem);
+
+        orderItem.setReplacedWith(replacementItem);
+
+        orderRepository.save(order);
+    }
+
+    public List<OrderResponseDTO.OrderItemDTO> convertOrderItemsToOrderItemDTOs(UUID orderId) {
         List<OrderItem> orderItems = orderItemRepository.findByOrderId(orderId);
-        return orderItems.stream().map(item -> new OrderResponseDTO.ProductDTO(
-                item.getId(),
-                item.getProduct().getId(),
-                item.getProduct().getName(),
-                item.getProduct().getPrice(),
-                item.getQuantity()
-        )).collect(Collectors.toList());
+
+        Set<UUID> replacementItemIds = orderItems.stream()
+                .filter(item -> item.getReplacedWith() != null)
+                .map(item -> item.getReplacedWith().getId())
+                .collect(Collectors.toSet());
+
+        return orderItems.stream()
+                .filter(item -> !replacementItemIds.contains(item.getId()))
+                .map(this::mapToOrderItemDTO)
+                .collect(Collectors.toList());
+    }
+
+    private OrderResponseDTO.OrderItemDTO mapToOrderItemDTO(OrderItem orderItem) {
+        OrderResponseDTO.OrderItemDTO dto = new OrderResponseDTO.OrderItemDTO(
+                orderItem.getId(),
+                orderItem.getProduct().getName(),
+                orderItem.getProduct().getPrice(),
+                orderItem.getProduct().getId(),
+                orderItem.getQuantity(),
+                null
+        );
+
+        if (orderItem.getReplacedWith() != null) {
+            dto.setReplacedWith(mapToOrderItemDTO(orderItem.getReplacedWith()));
+        }
+
+        return dto;
     }
 }

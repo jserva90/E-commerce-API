@@ -32,8 +32,8 @@ public class OrderItem {
     private int quantity;
 
     @ManyToOne
-    @JoinColumn(name = "replaced_with")
-    private Product replacedWith;
+    @JoinColumn(name = "replaced_with_id")
+    private OrderItem replacedWith;
 
     public OrderItem(Order order, Product product, int quantity){
         this.order = order;

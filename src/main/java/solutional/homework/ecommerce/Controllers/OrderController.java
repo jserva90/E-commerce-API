@@ -8,6 +8,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import solutional.homework.ecommerce.Models.DTO.OrderItemQuantityDTO;
+import solutional.homework.ecommerce.Models.DTO.OrderItemReplacementDTO;
 import solutional.homework.ecommerce.Models.DTO.OrderResponseDTO;
 import solutional.homework.ecommerce.Models.DTO.OrderStatusUpdateDTO;
 import solutional.homework.ecommerce.Services.OrderService;
@@ -51,7 +52,7 @@ public class OrderController {
     @GetMapping("/{orderId}/products")
     public void getProductsByOrderId(@PathVariable UUID orderId, HttpServletResponse response) throws IOException {
         try {
-            List<OrderResponseDTO.ProductDTO> productsListDTO = orderService.getProductsByOrderId(orderId);
+            List<OrderResponseDTO.OrderItemDTO> productsListDTO = orderService.getProductsByOrderId(orderId);
             response.setContentType("application/json");
             response.getWriter().write(new ObjectMapper().writeValueAsString(productsListDTO));
             response.setStatus(HttpServletResponse.SC_OK);
@@ -95,6 +96,26 @@ public class OrderController {
     public void changeOrderItemQuantity(@PathVariable UUID orderId, @PathVariable UUID orderItemId, @RequestBody OrderItemQuantityDTO quantityDTO,HttpServletResponse response) throws IOException{
         try {
             orderService.changeOrderItemQuantity(orderId,orderItemId, quantityDTO.getQuantity());
+            response.setContentType("application/json");
+            response.getWriter().write("\"OK\"");
+            response.setStatus(HttpServletResponse.SC_OK);
+        } catch (ResponseStatusException ex) {
+            response.setContentType("application/json");
+            String jsonMessage = String.format("\"%s\"",ex.getReason());
+            response.getWriter().write(jsonMessage);
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        }
+    }
+
+    //temp controller to test replace item
+    @PatchMapping("/{orderId}/products/{orderItemId}/r")
+    public void replace(@PathVariable UUID orderId, @PathVariable UUID orderItemId, @RequestBody OrderItemReplacementDTO replacementDTO, HttpServletResponse response) throws IOException{
+        try {
+            orderService.replaceOrderItemInOrder(
+                    orderId,
+                    orderItemId,
+                    replacementDTO.getReplaced_with().getProduct_id(),
+                    replacementDTO.getReplaced_with().getQuantity());
             response.setContentType("application/json");
             response.getWriter().write("\"OK\"");
             response.setStatus(HttpServletResponse.SC_OK);

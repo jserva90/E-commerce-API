@@ -17,7 +17,7 @@ public class OrderResponseDTO {
     private UUID id;
     private String status;
     private Amount amount;
-    private List<ProductDTO> products;
+    private List<OrderItemDTO> products;
 
     @Data
     @NoArgsConstructor
@@ -32,20 +32,21 @@ public class OrderResponseDTO {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class ProductDTO {
+    public static class OrderItemDTO {
         private UUID id;
         private String name;
         private String price;
         private Long product_id;
         private int quantity;
-        private UUID replacedWith;
+        private OrderItemDTO replacedWith;
 
-        public ProductDTO(UUID id,Long product_id, String name, String price, int quantity) {
+        public OrderItemDTO(UUID id, Long product_id, String name, String price, int quantity,OrderItemDTO replacedWith) {
             this.id = id;
             this.product_id = product_id;
             this.name = name;
             this.price = price;
             this.quantity = quantity;
+            this.replacedWith = replacedWith;
         }
     }
 }
