@@ -170,11 +170,10 @@ public class OrderService {
         replacementItem.setOrder(order);
         replacementItem.setProduct(replacementProduct);
         replacementItem.setQuantity(replacementQuantity);
-
         replacementItem = orderItemRepository.save(replacementItem);
 
         orderItem.setReplacedWith(replacementItem);
-
+        order.updateAmountsBasedOnReplacements();
         orderRepository.save(order);
     }
 

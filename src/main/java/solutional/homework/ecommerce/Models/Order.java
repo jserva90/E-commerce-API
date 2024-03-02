@@ -46,10 +46,37 @@ public class Order {
     }
 
     public void calculateTotal(){
-        BigDecimal newTotal = items.stream().
-                map(item -> new BigDecimal(item.getProduct().getPrice()).multiply(BigDecimal.valueOf(item.getQuantity())))
-                .reduce(BigDecimal.ZERO,BigDecimal::add);
+        BigDecimal newTotal = items.stream()
+                .filter(item -> !item.isReplaced()) // Exclude replaced items
+                .map(item -> new BigDecimal(item.getProduct().getPrice()).multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .subtract(this.discount)
+                .add(this.returns);
         this.total = newTotal;
+    }
+
+    public void updateAmountsBasedOnReplacements() {
+        BigDecimal originalTotal = this.paid;
+        BigDecimal accumulatedDifference = BigDecimal.ZERO;
+
+        for (OrderItem item : this.items) {
+            if (item.getReplacedWith() != null) {
+                BigDecimal itemTotalPrice = new BigDecimal(item.getProduct().getPrice()).multiply(BigDecimal.valueOf(item.getQuantity()));
+                BigDecimal replacementTotalPrice = new BigDecimal(item.getReplacedWith().getProduct().getPrice())
+                        .multiply(BigDecimal.valueOf(item.getReplacedWith().getQuantity()));
+
+                BigDecimal priceDifference = replacementTotalPrice.subtract(itemTotalPrice);
+                accumulatedDifference = accumulatedDifference.add(priceDifference);
+            }
+        }
+
+        if (accumulatedDifference.compareTo(BigDecimal.ZERO) > 0) {
+            this.discount = accumulatedDifference;
+        } else {
+            this.returns = accumulatedDifference.abs();
+        }
+
+        this.total = originalTotal.subtract(discount).subtract(returns);
     }
 }
 

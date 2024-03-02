@@ -27,3 +27,10 @@ CREATE TABLE order_items (
     FOREIGN KEY (product_id) REFERENCES products(id),
     FOREIGN KEY (replaced_with_id) REFERENCES order_items(id)
 );
+
+-- Populate Product table
+INSERT INTO products (id, name, price) VALUES
+(123, 'Ketchup', 0.45),
+(456, 'Beer', 2.33),
+(879, 'Õllesnäkk', 0.42),
+(999, '75" OLED TV', 1333.37);
