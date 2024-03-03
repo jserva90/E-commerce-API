@@ -93,7 +93,7 @@ public class OrderService {
             } else {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Invalid order status");
             }
-        }).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Order not found"));
+        }).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Not found"));
     }
 
     @Transactional
@@ -157,6 +157,10 @@ public class OrderService {
                 .filter(item -> item.getId().equals(orderItemId))
                 .findFirst()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
+
+        if (replacementQuantity < 0){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Invalid parameters");
+        }
 
         Product replacementProduct = productRepository.findById(replacementProductId).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid parameters"));
 

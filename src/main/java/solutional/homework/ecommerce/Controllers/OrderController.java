@@ -6,8 +6,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
-import solutional.homework.ecommerce.Models.DTO.*;
+import solutional.homework.ecommerce.Models.DTO.OrderItemUpdateDTO;
+import solutional.homework.ecommerce.Models.DTO.OrderResponseDTO;
+import solutional.homework.ecommerce.Models.DTO.OrderStatusUpdateDTO;
 import solutional.homework.ecommerce.Services.OrderService;
 
 import javax.servlet.http.HttpServletResponse;
@@ -33,81 +36,75 @@ public class OrderController {
     }
 
     @GetMapping("/{orderId}")
-    public void getOrderById(@PathVariable UUID orderId, HttpServletResponse response) throws IOException {
+    public void getOrderById(@PathVariable String orderId, HttpServletResponse response) throws IOException {
         try {
-            OrderResponseDTO orderResponseDTO = orderService.getOrderById(orderId);
-            response.setContentType("application/json");
-            response.getWriter().write(new ObjectMapper().writeValueAsString(orderResponseDTO));
-            response.setStatus(HttpServletResponse.SC_OK);
-        } catch (ResponseStatusException ex) {
-            response.setContentType("application/json");
-            response.getWriter().write("\"Not found\"");
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            UUID uuid = UUID.fromString(orderId);
+            OrderResponseDTO orderResponseDTO = orderService.getOrderById(uuid);
+            sendJsonResponse(orderResponseDTO, response, HttpStatus.OK);
+        } catch (IllegalArgumentException | MethodArgumentTypeMismatchException | ResponseStatusException ex) {
+            sendJsonResponse("Not found", response, HttpStatus.NOT_FOUND);
         }
     }
 
     @GetMapping("/{orderId}/products")
-    public void getProductsByOrderId(@PathVariable UUID orderId, HttpServletResponse response) throws IOException {
+    public void getProductsByOrderId(@PathVariable String orderId, HttpServletResponse response) throws IOException {
         try {
-            List<OrderResponseDTO.OrderItemDTO> productsListDTO = orderService.getProductsByOrderId(orderId);
-            response.setContentType("application/json");
-            response.getWriter().write(new ObjectMapper().writeValueAsString(productsListDTO));
-            response.setStatus(HttpServletResponse.SC_OK);
-        } catch (ResponseStatusException ex) {
-            response.setContentType("application/json");
-            response.getWriter().write("\"Not found\"");
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            UUID uuid = UUID.fromString(orderId);
+            List<OrderResponseDTO.OrderItemDTO> productsListDTO = orderService.getProductsByOrderId(uuid);
+            sendJsonResponse(productsListDTO, response, HttpStatus.OK);
+        } catch (IllegalArgumentException | MethodArgumentTypeMismatchException | ResponseStatusException ex) {
+            sendJsonResponse("Not found", response, HttpStatus.NOT_FOUND);
         }
     }
 
     @PostMapping("/{orderId}/products")
-    public void getProductsByOrderId(@PathVariable UUID orderId, @RequestBody List<Long> productIds, HttpServletResponse response) throws IOException {
+    public void addProductsToOrder(@PathVariable String orderId, @RequestBody List<Long> productIds, HttpServletResponse response) throws IOException {
         try {
-            orderService.addProductsToOrder(orderId,productIds);
-            response.setContentType("application/json");
-            response.getWriter().write("\"OK\"");
-            response.setStatus(HttpServletResponse.SC_OK);
+            UUID uuid = UUID.fromString(orderId);
+            orderService.addProductsToOrder(uuid,productIds);
+            sendJsonResponse("OK", response, HttpStatus.OK);
+        } catch (IllegalArgumentException | MethodArgumentTypeMismatchException ex) {
+            sendJsonResponse("Not found", response, HttpStatus.NOT_FOUND);
         } catch (ResponseStatusException ex) {
-            response.setContentType("application/json");
-            String jsonMessage = String.format("\"%s\"",ex.getReason());
-            response.getWriter().write(jsonMessage);
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            sendJsonResponse(ex.getReason(), response, HttpStatus.NOT_FOUND);
         }
     }
 
     @PatchMapping("/{orderId}")
-    public void updateOrderStatus(@PathVariable UUID orderId, @RequestBody OrderStatusUpdateDTO statusUpdate, HttpServletResponse response) throws IOException {
+    public void updateOrderStatus(@PathVariable String orderId, @RequestBody OrderStatusUpdateDTO statusUpdate, HttpServletResponse response) throws IOException {
         try {
-            orderService.updateOrderStatus(orderId, statusUpdate.getStatus());
-            response.setContentType("application/json");
-            response.getWriter().write("\"OK\"");
-            response.setStatus(HttpServletResponse.SC_OK);
+            UUID uuid = UUID.fromString(orderId);
+            orderService.updateOrderStatus(uuid, statusUpdate.getStatus());
+            sendJsonResponse("OK", response, HttpStatus.OK);
+        } catch (IllegalArgumentException | MethodArgumentTypeMismatchException ex) {
+            sendJsonResponse("Not found", response, HttpStatus.NOT_FOUND);
         } catch (ResponseStatusException ex) {
-            response.setContentType("application/json");
-            response.getWriter().write("\"Invalid order status\"");
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            sendJsonResponse(ex.getReason(), response, ex.getStatus());
         }
     }
 
     @PatchMapping("/{orderId}/products/{orderItemId}")
-    public void handleOrderItemUpdate(@PathVariable UUID orderId, @PathVariable UUID orderItemId, @RequestBody OrderItemUpdateDTO updateDTO, HttpServletResponse response) throws IOException{
+    public void handleOrderItemUpdate(@PathVariable String orderId, @PathVariable String orderItemId, @RequestBody OrderItemUpdateDTO updateDTO, HttpServletResponse response) throws IOException{
         try {
-            orderService.handleOrderItemUpdate(orderId,orderItemId,updateDTO);
-            response.setContentType("application/json");
-            response.getWriter().write("\"OK\"");
-            response.setStatus(HttpServletResponse.SC_OK);
+            UUID orderUuid = UUID.fromString(orderId);
+            UUID orderItemUuid = UUID.fromString(orderItemId);
+            orderService.handleOrderItemUpdate(orderUuid,orderItemUuid,updateDTO);
+            sendJsonResponse("OK", response, HttpStatus.OK);
+        } catch (IllegalArgumentException | MethodArgumentTypeMismatchException ex) {
+            sendJsonResponse("Not found", response, HttpStatus.NOT_FOUND);
         } catch (ResponseStatusException ex) {
-            response.setContentType("application/json");
-            String jsonMessage = String.format("\"%s\"",ex.getReason());
-            response.getWriter().write(jsonMessage);
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            sendJsonResponse(ex.getReason(), response, HttpStatus.BAD_REQUEST);
         }
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public void handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpServletResponse response) throws IOException {
+        sendJsonResponse("Invalid parameters", response, HttpStatus.BAD_REQUEST);
+    }
+
+    private void sendJsonResponse(Object responseObject, HttpServletResponse response, HttpStatus httpStatus) throws IOException {
         response.setContentType("application/json");
-        response.getWriter().write("\"Invalid parameters\"");
-        response.setStatus(HttpStatus.BAD_REQUEST.value());
+        response.getWriter().write(new ObjectMapper().writeValueAsString(responseObject));
+        response.setStatus(httpStatus.value());
     }
 }
