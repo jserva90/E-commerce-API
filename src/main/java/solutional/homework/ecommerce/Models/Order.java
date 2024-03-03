@@ -25,16 +25,16 @@ public class Order {
     private String status;
 
     @Column(precision = 10, scale = 2)
-    private BigDecimal discount;
+    private BigDecimal discount = BigDecimal.ZERO;
 
     @Column(precision = 10, scale = 2)
-    private BigDecimal paid;
+    private BigDecimal paid = BigDecimal.ZERO;
 
     @Column(precision = 10, scale = 2)
-    private BigDecimal returns;
+    private BigDecimal returns = BigDecimal.ZERO;
 
     @Column(precision = 10, scale = 2)
-    private BigDecimal total;
+    private BigDecimal total = BigDecimal.ZERO;
 
     @OneToMany(mappedBy = "order",cascade = CascadeType.ALL,orphanRemoval = true)
     @JsonManagedReference
