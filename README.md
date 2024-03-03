@@ -21,6 +21,16 @@ This project implements a simple e-commerce cart/order flow, mirroring the funct
 2. `cd e-commerce-api`
 3. `docker-compose up --build -d`
 
+### Choosing custom port
+#### Approach 1. Using start.sh script.
+`bash start.sh <server-port>` for example bash start.sh 5000
+###### If no port is chosen it will default to 8080
+
+#### Approach 2. If you don't want to use the start.sh script.
+1. CMD `set APP_PORT=<server-port>`
+2. PowerShell `$env:APP_PORT=<server-port>`
+3. Linux/macOS `export APP_PORT=<server-port>`
+
 ### API Endpoints
 #### Products
 - GET /api/products: List of all available products.
