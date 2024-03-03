@@ -33,3 +33,10 @@ This project implements a simple e-commerce cart/order flow, mirroring the funct
 - POST /api/orders/:order_id/products: Add products to an order.
 - PATCH /api/orders/:order_id/products/:product_id: Update product quantity in an order.
 - PATCH /api/orders/:order_id/products/:product_id: Add a replacement product in an order.
+  
+### API Documentation with Swagger
+My E-Commerce API is fully documented using Swagger, which is accessible via SpringDoc OpenAPI integration. Swagger provides a comprehensive and interactive documentation of all available API endpoints, models, and their respective request/response schemas. This allows for easy testing and exploration of the API's capabilities directly through the user interface.
+
+Accessing Swagger UI
+To access the Swagger UI and explore the API documentation, ensure the application is running and navigate to:
+`http://localhost:<server-port>/swagger-ui.html`

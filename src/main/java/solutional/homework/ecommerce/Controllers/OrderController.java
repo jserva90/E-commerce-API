@@ -1,6 +1,7 @@
 package solutional.homework.ecommerce.Controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,12 +31,14 @@ public class OrderController {
     }
 
     @PostMapping
+    @Operation(summary = "Create a new order", description = "Creates a new order and returns the order details.")
     public ResponseEntity<OrderResponseDTO> createOrder() {
         OrderResponseDTO orderResponseDTO = orderService.createOrder();
         return ResponseEntity.ok(orderResponseDTO);
     }
 
     @GetMapping("/{orderId}")
+    @Operation(summary = "Get an existing order by UUID", description = "Searches for existing order by the order UUID.")
     public void getOrderById(@PathVariable String orderId, HttpServletResponse response) throws IOException {
         try {
             UUID uuid = UUID.fromString(orderId);
@@ -47,6 +50,7 @@ public class OrderController {
     }
 
     @GetMapping("/{orderId}/products")
+    @Operation(summary = "Get the list of order items for the order", description = "Searches for existing order by the order UUID and return the list of order items.")
     public void getProductsByOrderId(@PathVariable String orderId, HttpServletResponse response) throws IOException {
         try {
             UUID uuid = UUID.fromString(orderId);
@@ -58,6 +62,7 @@ public class OrderController {
     }
 
     @PostMapping("/{orderId}/products")
+    @Operation(summary = "Add products to existing order", description = "Takes in a list of product ids and adds them to the order.")
     public void addProductsToOrder(@PathVariable String orderId, @RequestBody List<Long> productIds, HttpServletResponse response) throws IOException {
         try {
             UUID uuid = UUID.fromString(orderId);
@@ -71,6 +76,7 @@ public class OrderController {
     }
 
     @PatchMapping("/{orderId}")
+    @Operation(summary = "Updates order status", description = "Finds the order by UUID and updates the status to PAID")
     public void updateOrderStatus(@PathVariable String orderId, @RequestBody OrderStatusUpdateDTO statusUpdate, HttpServletResponse response) throws IOException {
         try {
             UUID uuid = UUID.fromString(orderId);
@@ -84,6 +90,7 @@ public class OrderController {
     }
 
     @PatchMapping("/{orderId}/products/{orderItemId}")
+    @Operation(summary = "Handles the update of order items based on order status", description = "If the order status is new, can change order item quantity, if the order status is paid, can add replacement product for the current order item")
     public void handleOrderItemUpdate(@PathVariable String orderId, @PathVariable String orderItemId, @RequestBody OrderItemUpdateDTO updateDTO, HttpServletResponse response) throws IOException{
         try {
             UUID orderUuid = UUID.fromString(orderId);
