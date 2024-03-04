@@ -64,7 +64,6 @@ public class Order {
                 BigDecimal itemTotalPrice = new BigDecimal(item.getProduct().getPrice()).multiply(BigDecimal.valueOf(item.getQuantity()));
                 BigDecimal replacementTotalPrice = new BigDecimal(item.getReplacedWith().getProduct().getPrice())
                         .multiply(BigDecimal.valueOf(item.getReplacedWith().getQuantity()));
-
                 BigDecimal priceDifference = replacementTotalPrice.subtract(itemTotalPrice);
                 accumulatedDifference = accumulatedDifference.add(priceDifference);
             }
@@ -72,11 +71,13 @@ public class Order {
 
         if (accumulatedDifference.compareTo(BigDecimal.ZERO) > 0) {
             this.discount = accumulatedDifference;
+            this.returns = BigDecimal.ZERO;
         } else {
             this.returns = accumulatedDifference.abs();
+            this.discount = BigDecimal.ZERO;
         }
 
-        this.total = originalTotal.subtract(discount).subtract(returns);
+        this.total = originalTotal.subtract(returns);
     }
 }
 
