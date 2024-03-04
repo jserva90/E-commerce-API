@@ -7,6 +7,4 @@ import java.util.UUID;
 
 public interface OrderItemRepository extends JpaRepository<OrderItem, UUID> {
     List<OrderItem> findByOrderId(UUID orderId);
-
-    Iterable<OrderItem> findAllByReplacedWithId(UUID orderItemId);
 }
